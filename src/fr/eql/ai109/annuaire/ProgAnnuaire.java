@@ -34,10 +34,11 @@ public class ProgAnnuaire extends Application {
 		//stagiaireDao.afficherSurConsole();
 		
 		RandomAccessFile raf = new RandomAccessFile("C:\\Users\\formation\\Desktop\\Fichiers-Projet1\\annuaireStructure.txt", "rw");
-		/*
-		stagiaireDao.ajouterListeTriee(0, 0, raf);
 		
-		for (Stagiaire stagiaire : stagiaireDao.getListeTriee()) {
+		stagiaireDao.ajouterListeTriee(0, raf);
+		System.out.println(stagiaireDao.getListeTriee().size());
+		
+	/*	for (Stagiaire stagiaire : stagiaireDao.getListeTriee()) {
 			System.out.println(stagiaire.getNom());
 		}*/
 		

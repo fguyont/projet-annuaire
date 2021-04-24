@@ -20,21 +20,15 @@ public class StagiaireDao {
 	private static int nbStagiaires = 0;
 	private static ArrayList<Stagiaire> listeStagiaires = new ArrayList<Stagiaire>();
 	private static ArrayList<Stagiaire> listeTriee = new ArrayList<Stagiaire>();
-	
-	
-	
-	public static ArrayList<Stagiaire> getListeTriee() {
+
+	public ArrayList<Stagiaire> getListeTriee() {
 		return listeTriee;
 	}
-	public static void setListeTriee(ArrayList<Stagiaire> listeTriee) {
-		StagiaireDao.listeTriee = listeTriee;
-	}
+	
 	public ArrayList<Stagiaire> getListeStagiaires() {
 		return listeStagiaires;
 	}
-	public void setListeStagiaires(ArrayList<Stagiaire> listeStagiaires) {
-		this.listeStagiaires = listeStagiaires;
-	}
+	
 	public void lireFichierStagiaire () {
 
 		BufferedReader br = null;
@@ -139,10 +133,10 @@ public class StagiaireDao {
 
 		try {
 			raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
-			
+
 			// Insérer le premier stagiaire
 			ecrireStagiaire(listeStagiaires.get(0), 0, raf);
-			
+
 			// Boucle qui parcourt la liste des stagiaires et qui prend chaque stagiaire pour les inscrire dans le nouveau fichier
 			for (int i = 1; i<listeStagiaires.size(); i++) {
 				// Appel de méthode pour inscrire le stagiaire
@@ -167,7 +161,7 @@ public class StagiaireDao {
 	//														destinationPourSauter : si le nom est plus petit, 2ème chiffre
 	//																				sinon, 3ème chiffre
 	//                                                      (premier appel : destination à 0)
-	
+
 	public void insererStagiaire (Stagiaire stagiaire, int numeroLigneAInserer, int destinationPourSauter, RandomAccessFile raf) throws IOException {
 
 		// Récupère le nom pour le comparer avec le nom du stagiaire à insérer
@@ -175,23 +169,23 @@ public class StagiaireDao {
 
 		// Si le nom du stagiaire à insérer est plus petit que le nom du stagiaire du fichier
 		if (stagiaire.getNom().compareToIgnoreCase(nomStagiaireFichier) < 0) {
-			
+
 			// Si le fils gauche du stagiaire est null
 			if ((filsGaucheEstVide (destinationPourSauter, raf)) == true) {
-				
+
 				// Fils gauche du stagiaire du fichier prend une nouvelle valeur : celle de la position du stagiaire à insérer
 				ecrireFilsGauche (numeroLigneAInserer, destinationPourSauter, tailleIndex, raf);
-				
+
 				// Insertion du nouveau stagiaire en toute fin de fichier
 				ecrireStagiaire (stagiaire, numeroLigneAInserer, raf);	
 			}
-			
+
 			// Si le fils gauche existe
 			else {
-				
+
 				// Récupère la valeur du fils gauche
 				int indexFilsGauche = Integer.parseInt(lireFilsGauche (destinationPourSauter, raf).trim());
-				
+
 				// Répète la méthode mais en changeant la valeur de destination
 				insererStagiaire (stagiaire, numeroLigneAInserer, indexFilsGauche, raf);
 			}
@@ -263,7 +257,7 @@ public class StagiaireDao {
 	// Méthode pour écrire le stagiaire. numero : position du stagiaire dans le fichier
 	public void ecrireStagiaire (Stagiaire stagiaire, int numero, RandomAccessFile raf) throws IOException{
 		raf.seek(numero*tailleStagiaire);
-		
+
 		// Ecriture de chaque attribut du stagiaire dans le fichier
 		ecrireChamp(stagiaire.getNom(), tailleNom, raf);
 		ecrireChamp(stagiaire.getPrenom(), taillePrenom, raf);
@@ -319,7 +313,7 @@ public class StagiaireDao {
 		byte[] b = champEntier.getBytes();
 		raf.write(b);
 	}
-	
+
 	public void afficherSurConsole () {
 		RandomAccessFile raf = null;
 
@@ -345,53 +339,72 @@ public class StagiaireDao {
 			}
 		}
 	}
-	
-	public void ajouterListeTriee (int position, int destination, RandomAccessFile raf) throws IOException{
+
+	public void ajouterListeTriee (int positionCourante, RandomAccessFile raf) {
+
+		try {
+			raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
+			raf.seek (positionCourante * tailleStagiaire);
 		
-		raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
-		raf.seek (position * tailleStagiaire);
-		if (filsGaucheEstVide(position, raf) == true) {
-			Stagiaire stagiaire = convertirTexteEnStagiaire(position, raf);
-			listeTriee.add(stagiaire);
+			if (filsGaucheEstVide(positionCourante, raf) == false) {
+				int indexFilsGauche = Integer.parseInt(lireFilsGauche(positionCourante, raf).trim());
+				ajouterListeTriee(indexFilsGauche, raf);
+			}
+			
+			Stagiaire stagiaire = convertirTexteEnStagiaire(positionCourante, raf);
+			listeTriee.add(stagiaire);	
+			
+			if (filsDroitEstVide(positionCourante, raf) == false) {
+				int indexFilsDroit = Integer.parseInt(lireFilsDroit(positionCourante, raf).trim());
+				ajouterListeTriee(indexFilsDroit, raf);
+			}	
+			raf.close();
 		}
-		else {
-			ajouterListeTriee(Integer.parseInt(lireFilsGauche(position, raf)), destination, raf);
+		catch (IOException e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				raf.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		
 	}
-	
+
+
+
 	public Stagiaire convertirTexteEnStagiaire (int position, RandomAccessFile raf) throws IOException {
-		
+
 		raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
 		raf.seek(position * tailleStagiaire);
 		String nom, prenom, departement, promo, annee = null;
-		
+
 		byte[] b = new byte[tailleNom];
 		raf.read(b);
 		nom = new String(b);
-		
+
 		raf.seek((position * tailleStagiaire) + tailleNom);
 		b = new byte[taillePrenom];
 		raf.read(b);
 		prenom = new String(b);
-		
+
 		raf.seek((position * tailleStagiaire) + tailleNom + taillePrenom);
 		b = new byte[tailleDepartement];
 		raf.read(b);
 		departement = new String(b);
-		
+
 		raf.seek((position * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement);
 		b = new byte[taillePromo];
 		raf.read(b);
 		promo = new String(b);
-		
+
 		raf.seek((position * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo);
 		b = new byte[tailleAnnee];
 		raf.read(b);
 		annee = new String(b);
-		
+
 		raf.close();
-		
+
 		return new Stagiaire (nom.trim(), prenom.trim(), departement.trim(), promo.trim(), Integer.parseInt(annee.trim()));
 	}
 }
