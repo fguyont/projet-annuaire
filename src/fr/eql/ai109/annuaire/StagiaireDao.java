@@ -20,6 +20,16 @@ public class StagiaireDao {
 	private static int nbStagiaires = 0;
 	private static ArrayList<Stagiaire> listeStagiaires = new ArrayList<Stagiaire>();
 	private static ArrayList<Stagiaire> listeTriee = new ArrayList<Stagiaire>();
+	private static ArrayList<Stagiaire> listeRecherches = new ArrayList<Stagiaire>();
+
+
+	public ArrayList<Stagiaire> getListeRecherches() {
+		return listeRecherches;
+	}
+
+	public void setListeRecherches(ArrayList<Stagiaire> listeRecherches) {
+		this.listeRecherches = listeRecherches;
+	}
 
 	public ArrayList<Stagiaire> getListeTriee() {
 		return listeTriee;
@@ -267,6 +277,7 @@ public class StagiaireDao {
 		ecrireChamp(String.valueOf(numero), tailleIndex, raf);
 		ecrireChamp("null", tailleIndex, raf);
 		ecrireChamp("null", tailleIndex, raf);
+		//nbStagiaires++;
 	}
 
 	// Méthode pour écrire un champ. 
@@ -407,6 +418,70 @@ public class StagiaireDao {
 
 		return new Stagiaire (nom.trim(), prenom.trim(), departement.trim(), promo.trim(), Integer.parseInt(annee.trim()));
 	}
+	
+	public ArrayList <Stagiaire> rechercherStagiaires (String nomRecherche, String prenomRecherche, String depRecherche, String promoRecherche, String anneeRecherche) {
+		//ArrayList <Stagiaire> resultats = new ArrayList<Stagiaire>();
+		System.out.println("--------------------------------------------------------------------");
+		listeRecherches = new ArrayList<Stagiaire>();
+		if (nomRecherche.equals("") && prenomRecherche.equals("") && depRecherche.equals("") && promoRecherche.equals("") && anneeRecherche.equals("")) {
+			System.out.println("rien");
+			return listeRecherches;
+		}
+	/*	ArrayList<Stagiaire> listeInit = new ArrayList<Stagiaire>();
+		listeInit = listeTriee;*/
+		for (Stagiaire stagiaire : listeTriee) {
+			
+			if ((stagiaire.getNom().equals(nomRecherche) || nomRecherche.equals("")) && (stagiaire.getPrenom().equals(prenomRecherche) || prenomRecherche.equals("")) &&
+					(stagiaire.getDepartement().equals(depRecherche) || depRecherche.equals("")) && (stagiaire.getPromo().equals(promoRecherche) || promoRecherche.equals("")) &&
+					(String.valueOf(stagiaire.getAnnee()).equals(anneeRecherche) || nomRecherche.equals(""))) {
+				listeRecherches.add(stagiaire);
+			}
+		}
+		
+		return listeRecherches;
+		
+		/*for (Stagiaire s : listeRecherches) {
+			System.out.println(s.getNom()+ " " +s.getPrenom()+ " " +s.getDepartement()+ " " +s.getPromo()+ " " +s.getAnnee());
+		}*/
+		
+	}
+	
+	public void gererDemandeAjout (Stagiaire stagiaire) {
+		
+		RandomAccessFile raf = null;
+
+		try {
+			raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
+
+			insererStagiaire(stagiaire, compterNbStagiaires(), 0, raf);
+			
+			listeTriee.clear();
+			
+			ajouterListeTriee(0, raf);
+			
+			raf.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				raf.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		
+		
+	}
+	
+	public int compterNbStagiaires () {
+		return listeTriee.size();
+	}
+	
+	
+	
 }
 
 

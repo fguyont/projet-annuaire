@@ -1,8 +1,8 @@
 package fr.eql.ai109.annuaire;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -17,10 +17,12 @@ public class ProgAnnuaire extends Application {
 			
 			stage.setTitle("Annuaire");
 			
-			Scene scene = new Scene(fenetrePrincipale);
+			Scene scene = new Scene(fenetrePrincipale, 1200, 800);
 			
 			stage.setScene(scene);
+			stage.setResizable(false);
 			stage.sizeToScene();
+			
 			stage.show();
 	}
 	
@@ -31,16 +33,12 @@ public class ProgAnnuaire extends Application {
 		stagiaireDao.lireFichierStagiaire();
 		stagiaireDao.determinerTaillesMax();
 		stagiaireDao.creerFichierStructure();
-		//stagiaireDao.afficherSurConsole();
+		stagiaireDao.afficherSurConsole();
 		
 		RandomAccessFile raf = new RandomAccessFile("C:\\Users\\formation\\Desktop\\Fichiers-Projet1\\annuaireStructure.txt", "rw");
 		
 		stagiaireDao.ajouterListeTriee(0, raf);
-		System.out.println(stagiaireDao.getListeTriee().size());
-		
-	/*	for (Stagiaire stagiaire : stagiaireDao.getListeTriee()) {
-			System.out.println(stagiaire.getNom());
-		}*/
+	
 		
 		launch(args); 
 	}
