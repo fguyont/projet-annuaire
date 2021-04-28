@@ -6,19 +6,21 @@ public class Stagiaire {
 	private String departement;
 	private String promo;
 	private int annee;
+	private int position;
 	
 	public Stagiaire() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public Stagiaire(String nom, String prenom, String departement, String promo, int annee) {
+	public Stagiaire(String nom, String prenom, String departement, String promo, int annee, int position) {
 		super();
 		this.nom = nom;
 		this.prenom = prenom;
 		this.departement = departement;
 		this.promo = promo;
 		this.annee = annee;
+		this.position = position;
 	}
 
 	public String getNom() {
@@ -59,6 +61,14 @@ public class Stagiaire {
 
 	public void setAnnee(int annee) {
 		this.annee = annee;
+	}
+
+	public int getPosition() {
+		return position;
+	}
+
+	public void setPosition(int position) {
+		this.position = position;
 	}
 	
 	

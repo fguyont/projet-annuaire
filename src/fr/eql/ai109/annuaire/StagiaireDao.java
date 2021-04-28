@@ -18,27 +18,50 @@ public class StagiaireDao {
 	private static int tailleStagiaire = 0;
 	private static int tailleIndex = 0;
 	private static int nbStagiaires = 0;
+	private static int derniereLigne = 0;
 	private static ArrayList<Stagiaire> listeStagiaires = new ArrayList<Stagiaire>();
 	private static ArrayList<Stagiaire> listeTriee = new ArrayList<Stagiaire>();
 	private static ArrayList<Stagiaire> listeRecherches = new ArrayList<Stagiaire>();
+	private static int posDepartFichier = 0;
 
+
+
+	public static int getPosDepartFichier() {
+		return posDepartFichier;
+	}
+
+	public static void setPosDepartFichier(int posDepartFichier) {
+		StagiaireDao.posDepartFichier = posDepartFichier;
+	}
+
+	public static int getNbStagiaires() {
+		return nbStagiaires;
+	}
+
+	public static void setNbStagiaires(int nbStagiaires) {
+		StagiaireDao.nbStagiaires = nbStagiaires;
+	}
+
+	public static int getDerniereLigne() {
+		return derniereLigne;
+	}
+
+	public static void setDerniereLigne(int derniereLigne) {
+		StagiaireDao.derniereLigne = derniereLigne;
+	}
 
 	public ArrayList<Stagiaire> getListeRecherches() {
 		return listeRecherches;
 	}
 
-	public void setListeRecherches(ArrayList<Stagiaire> listeRecherches) {
-		this.listeRecherches = listeRecherches;
-	}
-
 	public ArrayList<Stagiaire> getListeTriee() {
 		return listeTriee;
 	}
-	
+
 	public ArrayList<Stagiaire> getListeStagiaires() {
 		return listeStagiaires;
 	}
-	
+
 	public void lireFichierStagiaire () {
 
 		BufferedReader br = null;
@@ -60,10 +83,14 @@ public class StagiaireDao {
 				}
 			}
 
-			for (int a=0; a<donnees.size(); a=a+5) {			
-				stagiaire = new Stagiaire (donnees.get(a).trim(), donnees.get(a+1).trim(), donnees.get(a+2).trim(), donnees.get(a+3).trim(), Integer.parseInt(donnees.get(a+4).trim()));
+			int i = 0;
+
+			for (int a=0; a<donnees.size(); a=a+5) {	
+				stagiaire = new Stagiaire (donnees.get(a).trim(), donnees.get(a+1).trim(), donnees.get(a+2).trim(), 
+						donnees.get(a+3).trim(), Integer.parseInt(donnees.get(a+4).trim()), i);
 				listeStagiaires.add(stagiaire);
 				nbStagiaires=listeStagiaires.size();
+				i++;
 			}
 
 			in.close();
@@ -82,6 +109,7 @@ public class StagiaireDao {
 			}
 		}
 	}
+
 	public void determinerTaillesMax () {
 		BufferedReader br = null;
 		FileReader in = null;
@@ -146,11 +174,13 @@ public class StagiaireDao {
 
 			// Insérer le premier stagiaire
 			ecrireStagiaire(listeStagiaires.get(0), 0, raf);
+			derniereLigne++;
 
 			// Boucle qui parcourt la liste des stagiaires et qui prend chaque stagiaire pour les inscrire dans le nouveau fichier
 			for (int i = 1; i<listeStagiaires.size(); i++) {
 				// Appel de méthode pour inscrire le stagiaire
 				insererStagiaire(listeStagiaires.get(i), i, 0, raf);
+				derniereLigne++;
 			}
 			raf.close();
 
@@ -188,6 +218,7 @@ public class StagiaireDao {
 
 				// Insertion du nouveau stagiaire en toute fin de fichier
 				ecrireStagiaire (stagiaire, numeroLigneAInserer, raf);	
+
 			}
 
 			// Si le fils gauche existe
@@ -217,6 +248,15 @@ public class StagiaireDao {
 		String resultat = null;
 		raf.seek(tailleStagiaire * index);
 		byte[] b = new byte[tailleNom];
+		raf.read(b);
+		resultat = new String(b);
+		return resultat;
+	}
+
+	public String lirePosition (int index, RandomAccessFile raf) throws IOException{
+		String resultat = null;
+		raf.seek((tailleStagiaire * index) + tailleNom + taillePrenom + tailleDepartement +taillePromo+tailleAnnee);
+		byte[] b = new byte[tailleIndex];
 		raf.read(b);
 		resultat = new String(b);
 		return resultat;
@@ -277,7 +317,6 @@ public class StagiaireDao {
 		ecrireChamp(String.valueOf(numero), tailleIndex, raf);
 		ecrireChamp("null", tailleIndex, raf);
 		ecrireChamp("null", tailleIndex, raf);
-		//nbStagiaires++;
 	}
 
 	// Méthode pour écrire un champ. 
@@ -356,15 +395,15 @@ public class StagiaireDao {
 		try {
 			raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
 			raf.seek (positionCourante * tailleStagiaire);
-		
+
 			if (filsGaucheEstVide(positionCourante, raf) == false) {
 				int indexFilsGauche = Integer.parseInt(lireFilsGauche(positionCourante, raf).trim());
 				ajouterListeTriee(indexFilsGauche, raf);
 			}
-			
+
 			Stagiaire stagiaire = convertirTexteEnStagiaire(positionCourante, raf);
 			listeTriee.add(stagiaire);	
-			
+
 			if (filsDroitEstVide(positionCourante, raf) == false) {
 				int indexFilsDroit = Integer.parseInt(lireFilsDroit(positionCourante, raf).trim());
 				ajouterListeTriee(indexFilsDroit, raf);
@@ -388,7 +427,7 @@ public class StagiaireDao {
 
 		raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
 		raf.seek(position * tailleStagiaire);
-		String nom, prenom, departement, promo, annee = null;
+		String nom, prenom, departement, promo, annee, index = null;
 
 		byte[] b = new byte[tailleNom];
 		raf.read(b);
@@ -414,51 +453,443 @@ public class StagiaireDao {
 		raf.read(b);
 		annee = new String(b);
 
+		raf.seek((position * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo + tailleAnnee);
+		b = new byte[tailleIndex];
+		raf.read(b);
+		index = new String(b);
+
 		raf.close();
 
-		return new Stagiaire (nom.trim(), prenom.trim(), departement.trim(), promo.trim(), Integer.parseInt(annee.trim()));
+		return new Stagiaire (nom.trim(), prenom.trim(), departement.trim(), promo.trim(), Integer.parseInt(annee.trim()), Integer.parseInt(index.trim()));
 	}
-	
+
 	public ArrayList <Stagiaire> rechercherStagiaires (String nomRecherche, String prenomRecherche, String depRecherche, String promoRecherche, String anneeRecherche) {
-		//ArrayList <Stagiaire> resultats = new ArrayList<Stagiaire>();
-		System.out.println("--------------------------------------------------------------------");
+
 		listeRecherches = new ArrayList<Stagiaire>();
 		if (nomRecherche.equals("") && prenomRecherche.equals("") && depRecherche.equals("") && promoRecherche.equals("") && anneeRecherche.equals("")) {
 			System.out.println("rien");
 			return listeRecherches;
 		}
-	/*	ArrayList<Stagiaire> listeInit = new ArrayList<Stagiaire>();
-		listeInit = listeTriee;*/
+
 		for (Stagiaire stagiaire : listeTriee) {
-			
+
 			if ((stagiaire.getNom().equals(nomRecherche) || nomRecherche.equals("")) && (stagiaire.getPrenom().equals(prenomRecherche) || prenomRecherche.equals("")) &&
 					(stagiaire.getDepartement().equals(depRecherche) || depRecherche.equals("")) && (stagiaire.getPromo().equals(promoRecherche) || promoRecherche.equals("")) &&
-					(String.valueOf(stagiaire.getAnnee()).equals(anneeRecherche) || nomRecherche.equals(""))) {
+					(String.valueOf(stagiaire.getAnnee()).equals(anneeRecherche) || anneeRecherche.equals(""))) {
 				listeRecherches.add(stagiaire);
 			}
 		}
-		
+
 		return listeRecherches;
-		
-		/*for (Stagiaire s : listeRecherches) {
-			System.out.println(s.getNom()+ " " +s.getPrenom()+ " " +s.getDepartement()+ " " +s.getPromo()+ " " +s.getAnnee());
-		}*/
-		
+
 	}
-	
+
 	public void gererDemandeAjout (Stagiaire stagiaire) {
-		
+
 		RandomAccessFile raf = null;
 
 		try {
 			raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
 
-			insererStagiaire(stagiaire, compterNbStagiaires(), 0, raf);
-			
+			insererStagiaire(stagiaire, donnerDernierePosition(), 0, raf);
+
+			derniereLigne++;
+
 			listeTriee.clear();
-			
+
 			ajouterListeTriee(0, raf);
-			
+
+			raf.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				raf.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}	
+	}
+
+	public int compterNbStagiaires () {
+		return listeTriee.size();
+	}
+
+	public int donnerDernierePosition () {
+		return derniereLigne;
+	}
+
+	public void gererDemandeSuppression (String nomASupprimer, String prenomASupprimer,String depASupprimer,String promoASupprimer,String anneeASupprimer) {
+		RandomAccessFile raf = null;
+		int positionASupprimer = -1;
+
+		try {
+			raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
+
+			positionASupprimer = chercherPosition (nomASupprimer,prenomASupprimer,depASupprimer,promoASupprimer,anneeASupprimer, 0);
+
+			System.out.println(positionASupprimer);
+
+			if (positionASupprimer == -1) {
+				System.out.println("pas trouvé la position, suppression annulée");
+				raf.close();
+			}
+
+			else {
+				supprimerStagiaire (positionASupprimer, raf);
+
+				listeTriee.clear();
+
+				ajouterListeTriee(0, raf);
+
+				raf.close();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				raf.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public int chercherPosition (String nomASupprimer, String prenomASupprimer,String depASupprimer,String promoASupprimer,String anneeASupprimer, int posAFouiller) {
+		RandomAccessFile raf = null;
+		String nom, prenom, departement, promo, annee, index, indexFilsGauche, indexFilsDroit = null;
+		int posAtrouver = -1;
+
+		try {
+			raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
+
+			raf.seek(posAFouiller * tailleStagiaire);
+
+			byte[] b = new byte[tailleNom];
+			raf.read(b);
+			nom = new String(b);
+
+			raf.seek((posAFouiller * tailleStagiaire) + tailleNom);
+			b = new byte[taillePrenom];
+			raf.read(b);
+			prenom = new String(b);
+
+			raf.seek((posAFouiller * tailleStagiaire) + tailleNom + taillePrenom);
+			b = new byte[tailleDepartement];
+			raf.read(b);
+			departement = new String(b);
+
+			raf.seek((posAFouiller * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement);
+			b = new byte[taillePromo];
+			raf.read(b);
+			promo = new String(b);
+
+			raf.seek((posAFouiller * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo);
+			b = new byte[tailleAnnee];
+			raf.read(b);
+			annee = new String(b);
+
+			if (nom.trim().equals(nomASupprimer) && prenom.trim().equals(prenomASupprimer) && departement.trim().equals(depASupprimer) &&
+					(promo.trim().equals(promoASupprimer) && annee.trim().equals(anneeASupprimer))) {
+
+				raf.seek((posAFouiller * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee);
+				b = new byte[tailleIndex];
+				raf.read(b);
+				index = new String(b);
+				posAtrouver = Integer.valueOf(index.trim());
+
+				raf.close();
+				return posAtrouver;
+			}
+
+			if (nomASupprimer.compareToIgnoreCase(nom.trim()) < 0) {
+
+				raf.seek((posAFouiller * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex);
+				b = new byte[tailleIndex];
+				raf.read(b);
+				indexFilsGauche = new String(b);
+
+				if (!indexFilsGauche.trim().equals("null")) {
+					return chercherPosition(nomASupprimer, prenomASupprimer, depASupprimer, promoASupprimer, anneeASupprimer, Integer.valueOf(indexFilsGauche.trim()));
+				}
+			}
+
+			if (nomASupprimer.compareToIgnoreCase(nom.trim()) > 0) {
+
+				raf.seek((posAFouiller * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex+tailleIndex);
+				b = new byte[tailleIndex];
+				raf.read(b);
+				indexFilsDroit = new String(b);
+
+				if (!indexFilsDroit.trim().equals("null")) {
+					return chercherPosition(nomASupprimer, prenomASupprimer, depASupprimer, promoASupprimer, anneeASupprimer, Integer.valueOf(indexFilsDroit.trim()));
+				}
+			}
+
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				raf.close();
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return posAtrouver;
+	}
+
+	public void supprimerStagiaire (int positionASupprimer, RandomAccessFile raf) throws IOException {
+
+		raf.seek(positionASupprimer);
+		int positionPere = -1;
+		int posPereDuPlusProche = -1;
+		String filsGauche;
+		String filsDroit;
+		int plusProche = -1;
+		String filsGaucheDuPlusProche;
+
+		// si le stagiaire n'a pas de fils
+		if (filsGaucheEstVide(positionASupprimer, raf) == true && filsDroitEstVide(positionASupprimer, raf) == true) {
+			positionPere=chercherPere(positionASupprimer, raf);
+			ecrireFilsGaucheNull(positionASupprimer, raf);
+			ecrireFilsDroitNull(positionASupprimer, raf);
+			if (positionPere != -1) {
+				supprimerValeurFils(positionPere, positionASupprimer, raf);
+			}
+		}
+
+		// si stagiaire a un seul fils
+		else if (filsGaucheEstVide(positionASupprimer, raf) == false && filsDroitEstVide(positionASupprimer, raf) == true) {
+			filsGauche = lireFilsGauche(positionASupprimer, raf).trim();
+			positionPere=chercherPere(positionASupprimer, raf);
+			if (positionPere != -1) {
+				changerValeurFils(positionPere, String.valueOf(positionASupprimer), filsGauche, raf);
+			}
+			ecrireFilsGaucheNull(positionASupprimer, raf);
+			ecrireFilsDroitNull(positionASupprimer, raf);
+
+		}
+		else if (filsGaucheEstVide(positionASupprimer, raf) == true && filsDroitEstVide(positionASupprimer, raf) == false) {
+			filsDroit = lireFilsDroit(positionASupprimer, raf).trim();
+			positionPere=chercherPere(positionASupprimer, raf);
+			if (positionPere != -1) {
+				changerValeurFils(positionPere, String.valueOf(positionASupprimer), filsDroit, raf);
+			}
+			ecrireFilsGaucheNull(positionASupprimer, raf);
+			ecrireFilsDroitNull(positionASupprimer, raf);
+
+		}
+
+		// si stagiaire a deux fils
+		else if (filsGaucheEstVide(positionASupprimer, raf) == false && filsDroitEstVide(positionASupprimer, raf) == false) {
+
+			filsGauche = lireFilsGauche(positionASupprimer, raf).trim();
+			filsDroit = lireFilsDroit(positionASupprimer, raf).trim();
+			positionPere=chercherPere(positionASupprimer, raf);
+			plusProche = trouverPlusProche1(positionASupprimer, raf);
+			filsGaucheDuPlusProche = lireFilsGauche(plusProche, raf).trim();
+			posPereDuPlusProche=chercherPere(plusProche, raf);
+
+			if (posPereDuPlusProche == positionASupprimer) {
+				changerDeuxFils (plusProche, filsGaucheDuPlusProche, filsDroit, raf);
+			}
+			else {
+				changerDeuxFils (plusProche, filsGauche, filsDroit, raf);
+			}
+			if (!filsGaucheDuPlusProche.trim().equals("null")) {
+				ecrireFilsDroit(Integer.parseInt(filsGaucheDuPlusProche.trim()), posPereDuPlusProche, tailleIndex, raf);
+			}
+			else {
+				supprimerValeurFils(posPereDuPlusProche, plusProche, raf);
+			}
+			if (positionPere != -1) {
+				changerValeurFils(positionPere, String.valueOf(positionASupprimer), String.valueOf(plusProche), raf);
+			}
+
+			ecrireFilsGaucheNull(positionASupprimer, raf);
+			ecrireFilsDroitNull(positionASupprimer, raf);
+
+
+
+			System.out.println("position " +positionASupprimer+ " fg " +filsGauche+ " fd " +filsDroit+ " pos pere "+positionPere+ " plus proche " +plusProche+ " pere du plus proche " +posPereDuPlusProche);
+
+
+		}
+
+		//	positionPere=chercherPere(positionASupprimer, raf);
+		//	if (positionPere == -1) {
+		//posDepartFichier = plusProche;
+		/*System.out.println("on change de départ");
+			changerPointDepart(raf);*/
+		//	}
+
+	}
+
+	public void changerPointDepart (RandomAccessFile raf) throws IOException {
+
+		int i;
+		for (i=0; i<=derniereLigne; i++) {
+			if (chercherPere(i, raf) != -1) {
+				continue;
+			}
+		}
+		posDepartFichier = i;
+	}
+
+	public int chercherPere (int position, RandomAccessFile raf) throws IOException {
+		String indexFilsGauche = null;
+		String indexFilsDroit = null;
+		String index = null;
+		int positionPere = -1;
+
+		for (int i=0; i<nbStagiaires; i++) {
+			raf.seek((i * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex);
+			byte[] b = new byte[tailleIndex];
+			raf.read(b);
+			indexFilsGauche = new String(b);
+			raf.seek((i * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex+tailleIndex);
+			b = new byte[tailleIndex];
+			raf.read(b);
+			indexFilsDroit = new String(b);
+
+			if (String.valueOf(position).equals(indexFilsGauche.trim()) || String.valueOf(position).equals(indexFilsDroit.trim())) {
+				raf.seek((i * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee);
+				b = new byte[tailleIndex];
+				raf.read(b);
+				index = new String(b);
+
+				positionPere = Integer.parseInt(index.trim());
+
+			}
+		}
+
+		return positionPere;
+	}
+
+	public void supprimerValeurFils (int index, int indexFils, RandomAccessFile raf) throws IOException {
+		String indexFilsGauche = null;
+		String indexFilsDroit = null;
+		raf.seek((index * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex);
+		byte[] b = new byte[tailleIndex];
+		raf.read(b);
+		indexFilsGauche = new String(b);
+		raf.seek((index * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex+tailleIndex);
+		b = new byte[tailleIndex];
+		raf.read(b);
+		indexFilsDroit = new String(b);
+
+		if (String.valueOf(indexFils).equals(indexFilsGauche.trim())) {
+			raf.seek((index * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex);
+			ecrireChamp("null", tailleIndex, raf);
+		}
+
+		else if (String.valueOf(indexFils).equals(indexFilsDroit.trim())) {
+			raf.seek((index * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex+tailleIndex);
+			ecrireChamp("null", tailleIndex, raf);
+		}
+	}
+
+	public void changerValeurFils (int indexPere, String chaineIndexSupprime, String chaineNouveauFils, RandomAccessFile raf) throws IOException {
+		String indexFilsGauche = null;
+		String indexFilsDroit = null;
+		raf.seek((indexPere * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex);
+		byte[] b = new byte[tailleIndex];
+		raf.read(b);
+		indexFilsGauche = new String(b);
+		raf.seek((indexPere * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex+tailleIndex);
+		b = new byte[tailleIndex];
+		raf.read(b);
+		indexFilsDroit = new String(b);
+
+		if (chaineIndexSupprime.equals(indexFilsGauche.trim())) {
+			raf.seek((indexPere * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex);
+			ecrireChamp(chaineNouveauFils, tailleIndex, raf);
+		}
+
+		else if (chaineIndexSupprime.equals(indexFilsDroit.trim())) {
+			raf.seek((indexPere * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex+tailleIndex);
+			ecrireChamp(chaineNouveauFils, tailleIndex, raf);
+		}
+
+	}
+
+	public int trouverPlusProche1 (int indexSupprime, RandomAccessFile raf) throws IOException {
+		int posFilsGauche = Integer.parseInt(lireFilsGauche(indexSupprime, raf).trim());
+
+		raf.seek((Integer.parseInt(lireFilsGauche(indexSupprime, raf).trim()) * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex);
+
+		if (filsDroitEstVide(posFilsGauche, raf)) {
+			return posFilsGauche;
+		}
+
+		int position = trouverPlusProche2 (posFilsGauche, raf);
+		return position;
+
+	}
+
+	public int trouverPlusProche2 (int index, RandomAccessFile raf) throws IOException {
+
+		if (lireFilsDroit(index, raf).trim().equals("null")) {
+			return Integer.parseInt(lirePosition(index, raf).trim());
+		}
+
+		int posFilsDroit = Integer.parseInt(lireFilsDroit(index, raf).trim());
+		raf.seek((Integer.parseInt(lireFilsDroit(index, raf).trim()) * tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement + taillePromo +tailleAnnee+tailleIndex+tailleIndex);
+
+		return trouverPlusProche2(posFilsDroit, raf);
+	}
+
+	public void changerDeuxFils (int index, String indexFilsGauche, String indexFilsDroit, RandomAccessFile raf) throws IOException {
+		if (indexFilsGauche.equals("null")) {
+			ecrireFilsGaucheNull(index, raf);
+		}
+		else {
+			ecrireFilsGauche(Integer.parseInt(indexFilsGauche.trim()), index, tailleIndex, raf);
+		}
+		if (indexFilsDroit.equals("null")) {
+			ecrireFilsDroitNull(index, raf);
+		}
+		else {
+			ecrireFilsDroit(Integer.parseInt(indexFilsDroit.trim()), index, tailleIndex, raf);
+		}
+	}
+
+	public void ecrireFilsGaucheNull (int index, RandomAccessFile raf) throws IOException {
+		raf.seek((index*tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement+ taillePromo +tailleAnnee+tailleIndex);
+
+		String champEntier = "null";
+		byte[] b = champEntier.getBytes();
+		raf.write(b);
+	}
+
+	public void ecrireFilsDroitNull (int index, RandomAccessFile raf) throws IOException {
+		raf.seek((index*tailleStagiaire) + tailleNom + taillePrenom + tailleDepartement+ taillePromo +tailleAnnee+tailleIndex+tailleIndex);
+
+		String champEntier = "null";
+		byte[] b = champEntier.getBytes();
+		raf.write(b);
+	}
+
+	public void gererDemandeSuppression2 (int posASupprimer) {
+		RandomAccessFile raf = null;
+
+		try {
+			raf = new RandomAccessFile(CHEMIN_FICHIER_STRUCTURE, "rw");
+
+			supprimerStagiaire (posASupprimer, raf);
+
+			System.out.println("suppression réussie");
+
+			listeTriee.clear();
+
+			ajouterListeTriee(posDepartFichier, raf);
+
+			System.out.println("nombre stagiaires :" +listeTriee.size());
+
 			raf.close();
 
 		} catch (IOException e) {
@@ -470,19 +901,21 @@ public class StagiaireDao {
 				e.printStackTrace();
 			}
 		}
-		
-		
-		
-		
 	}
-	
-	public int compterNbStagiaires () {
-		return listeTriee.size();
-	}
-	
-	
-	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -14,7 +14,7 @@ public class FenetrePrincipale extends BorderPane{
 
 		setRight(panneauGrille);
 		setLeft(panneauDeGauche);
-		setBottom(panneauRecherche);
+		//setBottom(panneauRecherche);
 		
 	}
 
