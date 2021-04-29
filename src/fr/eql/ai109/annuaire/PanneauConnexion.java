@@ -4,9 +4,12 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-//aClique.setMaxWidth(120);  Taille du texte
+import javafx.scene.text.Font;
+
+
 public class PanneauConnexion  extends GridPane{
 
 	private Label lblIdentifiant;
@@ -14,39 +17,40 @@ public class PanneauConnexion  extends GridPane{
 	private Label lblMessageConnexion;
 
 	private TextField txtIdentifiant;
-	private TextField txtMdp;
+	private PasswordField  txtMdp;
 
 	private Button btnConnexion;
 	private Button btnDeconnexion;
-
-
+	
 
 	PanneauConnexion(){
 
 
 		lblIdentifiant= new Label("Identifiant : ");
+		lblIdentifiant.setFont(Font.font("Aharoni", 14));
 		txtIdentifiant = new TextField();		
 
-
 		lblMessageConnexion = new Label("Utilisateur");
-		addRow(0, lblIdentifiant, txtIdentifiant, lblMessageConnexion);
-
+		lblMessageConnexion.setFont(Font.font("Aharoni", 14));
+		
 		lblMdp= new Label("Mot de passe : ");
-		txtMdp = new TextField();		
+		lblMdp.setFont(Font.font("Aharoni", 14));
+		txtMdp = new PasswordField();
+		
 		addRow(1, lblMdp, txtMdp);
 
 		btnConnexion = new Button("Connexion");
 		btnConnexion.setPrefSize(100, 70);
 
 		btnDeconnexion = new Button("Déconnexion");
-		btnDeconnexion.setPrefSize(100, 70);
+		btnDeconnexion.setPrefSize(100, 20);
 		btnDeconnexion.setVisible(false);
-
-		addRow(2, btnConnexion, btnDeconnexion);
-
+		
+		addRow(0, lblIdentifiant, txtIdentifiant, lblMessageConnexion, btnDeconnexion);
+		addRow(2, btnConnexion);
 
 		setHgap(20);
-		
+	
 		btnConnexion.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
@@ -68,8 +72,9 @@ public class PanneauConnexion  extends GridPane{
 
 				} else {
 					lblMessageConnexion.setText("Erreur de connexion");
+					lblMessageConnexion.setStyle("-fx-text-fill: red;  -fx-font-size: 12pt;");
 				}
-
+				
 			}});
 		
 				btnDeconnexion.setOnAction(new EventHandler<ActionEvent>() {
@@ -88,28 +93,8 @@ public class PanneauConnexion  extends GridPane{
 						txtMdp.setVisible(true);
 
 						lblMessageConnexion.setText("Utilisateur");
-
-
-
-						// ligne 101 : fenetrePrinc.getPanneauGrille().getObservableStagiaires().add(stagiaire);
-
-
-						/*	stagiaireDao.rechercherStagiaires(txtNom.getText().trim(), txtPrenom.getText().trim(), txtDepartement.getText().trim(), txtPromo.getText().trim(), txtAnnee.getText().trim());
-						 */
-						//			fenetrePrinc.getPanneauRecherche().getObservableStagiaires().clear();
-						//			fenetrePrinc.getPanneauRecherche().getObservableStagiaires().addAll(stagiaireDao.rechercherStagiaires(txtNom.getText().trim(), txtPrenom.getText().trim(), txtDepartement.getText().trim(), txtPromo.getText().trim(), txtAnnee.getText().trim()));
-
-						//fenetrePrinc.getPanneauGrille().getStagiaireDao().ajouterBouton(stagiaire);
-
-						//  fenetrePrinc.getPanneauRecherche().getStagiaireDao().rechercherStagiaires(txtNom.getText().trim(), txtPrenom.getText().trim(), txtDepartement.getText().trim(), txtPromo.getText().trim(), txtAnnee.getText().trim());
-
-
 					}
-
 				});
-
 			}
-
-
 
 		}

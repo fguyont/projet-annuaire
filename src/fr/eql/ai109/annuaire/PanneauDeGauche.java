@@ -22,38 +22,22 @@ public class PanneauDeGauche extends BorderPane{
     // Create the HBox      
     HBox root = new HBox();
 
-    
-     
-
-
 	
 	public PanneauDeGauche() {
 		setTop(panneauConnexion);
 		setCenter(panneauFormulaire);
 		setMargin(panneauFormulaire, new Insets(10, 10, 10, 30));
 		setBottom(root);
+		setMargin(root, new Insets(0, 10, 10, 80));
 		
 	    // Add Children to the HBox
 	    root.getChildren().add(imageView);
-	    // Set the padding of the HBox
-	    root.setStyle("-fx-padding: 200;");
-//	    // Set the border-style of the HBox
-//	    root.setStyle("-fx-border-style: solid inside;");
-	    // Set the border-width of the HBox
-	    //root.setStyle("-fx-border-width: 2;");
-	    // Set the border-insets of the HBox
-	    //root.setStyle("-fx-border-insets: 5;");
-	    // Set the border-radius of the HBox
-	    //root.setStyle("-fx-border-radius: 5;");
-	    // Set the border-color of the HBox
-	    //root.setStyle("-fx-border-color: blue;");       
-	    // Set the size of the HBox
-	    root.setPrefSize(300, 50);
+	    root.setStyle("-fx-padding: 110;");
+	    root.setPrefSize(350, 50);
 	    
 	    
 		setStyle("-fx-background-color: lightskyblue");
-//		setStyle("-fx-background-color: paleturquoise");
-		setPrefSize(500, BASELINE_OFFSET_SAME_AS_HEIGHT);
+		setPrefSize(550, BASELINE_OFFSET_SAME_AS_HEIGHT);
 	}
 
 	public PanneauFormulaire getPanneauFormulaire() {
